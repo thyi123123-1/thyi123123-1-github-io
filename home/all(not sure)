@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>רשימת הנקמות שלי</title>
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: #eee;
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      color: crimson;
+    }
+    form {
+      margin: 20px auto;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+    input {
+      width: 200px;
+    }
+    button {
+      background-color: crimson;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: darkred;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      background-color: #333;
+      margin: 10px auto;
+      padding: 10px;
+      border-radius: 8px;
+      width: 60%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+    .delete-btn, .edit-btn, .save-btn {
+      background-color: #555;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background-color: #cc0000;
+    }
+    .edit-btn:hover {
+      background-color: #ffaa00;
+    }
+    .save-btn:hover {
+      background-color: #00aa55;
+    }
+    .edit-input {
+      width: 45%;
+      padding: 5px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>📜 רשימת הנקמות שלי</h1>
+
+  <form id="revengeForm">
+    <input type="text" id="name" placeholder="שם היעד" required>
+    <input type="text" id="action" placeholder="מה לעשות לו?" required>
+    <button type="submit">הוסף לרשימה</button>
+  </form>
+
+  <ul id="revengeList"></ul>
+
+  <script>
+    let revengeItems = JSON.parse(localStorage.getItem('revengeList')) || [];
+
+    const form = document.getElementById('revengeForm');
+    const list = document.getElementById('revengeList');
+
+    function saveToStorage() {
+      localStorage.setItem('revengeList', JSON.stringify(revengeItems));
+    }
+
+    function renderList() {
+      list.innerHTML = '';
+      revengeItems.forEach((item, index) => {
+        const li = document.createElement('li');
+
+        if (item.editing) {
+          li.innerHTML = `
+            <input class="edit-input" type="text" id="edit-name-${index}" value="${item.name}">
+            <input class="edit-input" type="text" id="edit-action-${index}" value="${item.action}">
+            <div class="btn-group">
+              <button class="save-btn" onclick="saveEdit(${index})">שמור</button>
+              <button class="delete-btn" onclick="deleteItem(${index})">מחק</button>
+            </div>
+          `;
+        } else {
+          li.innerHTML = `
+            <span>${item.name} – ${item.action}</span>
+            <div class="btn-group">
+              <button class="edit-btn" onclick="editItem(${index})">ערוך</button>
+              <button class="delete-btn" onclick="deleteItem(${index})">מחק</button>
+            </div>
+          `;
+        }
+
+        list.appendChild(li);
+      });
+    }
+
+    function deleteItem(index) {
+      revengeItems.splice(index, 1);
+      saveToStorage();
+      renderList();
+    }
+
+    function editItem(index) {
+      revengeItems[index].editing = true;
+      renderList();
+    }
+
+    function saveEdit(index) {
+      const newName = document.getElementById(`edit-name-${index}`).value.trim();
+      const newAction = document.getElementById(`edit-action-${index}`).value.trim();
+      if (newName && newAction) {
+        revengeItems[index] = {
+          name: newName,
+          action: newAction,
+          editing: false
+        };
+        saveToStorage();
+        renderList();
+      }
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const action = document.getElementById('action').value.trim();
+
+      if (name && action) {
+        revengeItems.push({ name, action });
+        saveToStorage();
+        renderList();
+        form.reset();
+      }
+    });
+
+    // הצגה ראשונית מהרשימה השמורה
+    renderList();
+  </script>
+</body>
+</html>
